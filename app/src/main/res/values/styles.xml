@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <style name="Widget.Logo" parent="Widget.AppCompat.TextView">
+        <item name="android:textStyle">bold</item>
+        <item name="android:gravity">center</item>
+        <item name="android:fontFamily">sans-serif-black</item>
+        <item name="android:paddingStart">@dimen/logo_padding</item>
+        <item name="android:paddingEnd">@dimen/logo_padding</item>
+    </style>
+
+    <style name="Widget.Logo.Left">
+        <item name="android:text">@string/app_name_left</item>
+        <item name="android:textColor">@color/logo_left_text</item>
+        <item name="android:background">@color/logo_left_bg</item>
+    </style>
+
+    <style name="Widget.Logo.Right">
+        <item name="android:text">@string/app_name_right</item>
+        <item name="android:textColor">@color/logo_right_text</item>
+        <item name="android:background">@color/logo_right_bg</item>
+    </style>
+</resources>

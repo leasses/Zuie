@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="starting_task">Starting a task.</string>
+    <string name="task_succeeded">Succeeded in running the task.</string>
+    <string name="task_failed">Failed in running the task.</string>
+
+    <string name="task_checking_updates">Checking for updates.</string>
+    <string name="found_new_version">Found new version.</string>
+    <string name="up_to_data">Model %s is already up-to-data.</string>
+
+    <string name="task_unpacking_file">Unpacking the file.</string>
+
+    <string name="task_downloading_file">Downloading the file.</string>
+
+    <string name="task_verifying_file">Verifying the file.</string>
+
+    <string name="switching_debug_mode">Switching debug mode.</string>
+
+    <string name="reason_no_permission">You do not have the permission.</string>
+    <string name="reason_script_dir_null">The script directory is null.</string>
+</resources>

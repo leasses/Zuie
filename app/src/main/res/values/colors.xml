@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="window_bg">#FF101010</color>
+    <color name="accent">#FF00A0FF</color>
+    <color name="primary">#202020</color>
+    <color name="ic_launcher_bg">#202020</color>
+    <color name="logo_left_bg">@color/accent</color>
+    <color name="logo_right_bg">@color/primary</color>
+    <color name="logo_left_text">#000000</color>
+    <color name="logo_right_text">#FFFFFF</color>
+
+    <color name="log_debug_text">#78F841</color>
+    <color name="log_info_text">#FFFFFF</color>
+    <color name="log_warning_text">#FFE36F</color>
+    <color name="log_error_text">#FF7D74</color>
+    <color name="log_action_text">#6989FF</color>
+</resources>
