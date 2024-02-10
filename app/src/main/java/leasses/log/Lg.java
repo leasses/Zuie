@@ -1,4 +1,4 @@
-package leasses.zuie.log;
+package leasses.log;
 
 import android.util.Log;
 
@@ -8,6 +8,7 @@ import androidx.annotation.Nullable;
 import java.util.Arrays;
 
 public class Lg /* Logger */ {
+    private static final String CLASS_NAME = Lg.class.getName();
     private static Observer observer = msg -> {
 
     };
@@ -43,7 +44,7 @@ public class Lg /* Logger */ {
         for (Object obj : msg) {
             if (obj == null) {
                 sb.append("null");
-            }else if (obj.getClass().isArray()) {
+            } else if (obj.getClass().isArray()) {
                 sb.append(Arrays.toString((Object[]) obj));
             } else if (obj instanceof Throwable) {
                 sb.append(Log.getStackTraceString((Throwable) obj));
@@ -57,14 +58,35 @@ public class Lg /* Logger */ {
     }
 
     private static void newLog(@NonNull Level level, @NonNull String msg) {
-        observer.onNewLog(msg);
+        StackTraceElement caller = new StackTraceElement(
+                "UnknownClass",
+                "unknownMethod",
+                "unknown source",
+                -1);
+
+        boolean isMyself = false;
+        for (StackTraceElement e : Thread.currentThread().getStackTrace()) {
+            if (e.getClassName().equals(CLASS_NAME)) {
+                isMyself = true;
+                continue;
+            }
+
+            if (isMyself) {
+                caller = e;
+                break;
+            }
+        }
+
+        observer.onNewLog(msg + "\n[Caller: " +
+                caller.getClassName() + "::" + caller.getMethodName() +
+                " (" + caller.getFileName() + ":" + caller.getLineNumber() + ")]");
 
         switch (level) {
             case INFO:
-                Log.i("Logger", msg);
+                Log.i(caller.getClassName(), msg);
                 break;
             case ERROR:
-                Log.e("Logger", msg);
+                Log.e(caller.getClassName(), msg);
         }
     }
 
