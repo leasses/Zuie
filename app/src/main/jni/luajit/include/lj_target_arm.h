@@ -42,7 +42,7 @@ enum {
   RID_BASE = RID_R9,		/* Interpreter BASE. */
   RID_LPC = RID_R6,		/* Interpreter PC. */
   RID_DISPATCH = RID_R7,	/* Interpreter DISPATCH table. */
-  RID_LREG = RID_R8,		/* Interpreter globalL. */
+  RID_LREG = RID_R8,		/* Interpreter L. */
 
   /* Register ranges [min, max) and number of registers. */
   RID_MIN_GPR = RID_R0,

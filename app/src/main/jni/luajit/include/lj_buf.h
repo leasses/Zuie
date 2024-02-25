@@ -16,7 +16,7 @@
 **   char *w;	Write pointer.
 **   char *e;	End pointer.
 **   char *b;	Base pointer.
-**   MRef globalL;	lua_State, used for buffer resizing. Extension bits in 3 LSB.
+**   MRef L;	lua_State, used for buffer resizing. Extension bits in 3 LSB.
 */
 
 /* Extended string buffer. */
@@ -45,21 +45,21 @@ typedef struct SBufExt {
 #define SBUF_FLAG_BORROW	4	/* Borrowed string buffer. */
 
 #define sbufL(sb) \
-  ((lua_State *)(void *)(uintptr_t)(mrefu((sb)->globalL) & SBUF_MASK_L))
-#define setsbufL(sb, l)		(setmref((sb)->globalL, (l)))
+  ((lua_State *)(void *)(uintptr_t)(mrefu((sb)->L) & SBUF_MASK_L))
+#define setsbufL(sb, l)		(setmref((sb)->L, (l)))
 #define setsbufXL(sb, l, flag) \
-  (setmrefu((sb)->globalL, (GCSize)(uintptr_t)(void *)(l) + (flag)))
+  (setmrefu((sb)->L, (GCSize)(uintptr_t)(void *)(l) + (flag)))
 #define setsbufXL_(sb, l) \
-  (setmrefu((sb)->globalL, (GCSize)(uintptr_t)(void *)(l) | (mrefu((sb)->L) & SBUF_MASK_FLAG)))
+  (setmrefu((sb)->L, (GCSize)(uintptr_t)(void *)(l) | (mrefu((sb)->L) & SBUF_MASK_FLAG)))
 
-#define sbufflag(sb)		(mrefu((sb)->globalL))
+#define sbufflag(sb)		(mrefu((sb)->L))
 #define sbufisext(sb)		(sbufflag((sb)) & SBUF_FLAG_EXT)
 #define sbufiscow(sb)		(sbufflag((sb)) & SBUF_FLAG_COW)
 #define sbufisborrow(sb)	(sbufflag((sb)) & SBUF_FLAG_BORROW)
 #define sbufiscoworborrow(sb)	(sbufflag((sb)) & (SBUF_FLAG_COW|SBUF_FLAG_BORROW))
 #define sbufX(sb) \
   (lj_assertG_(G(sbufL(sb)), sbufisext(sb), "not an SBufExt"), (SBufExt *)(sb))
-#define setsbufflag(sb, flag)	(setmrefu((sb)->globalL, (flag)))
+#define setsbufflag(sb, flag)	(setmrefu((sb)->L, (flag)))
 
 #define tvisbuf(o) \
   (LJ_HASBUFFER && tvisudata(o) && udataV(o)->udtype == UDTYPE_BUFFER)
@@ -192,7 +192,7 @@ LJ_FUNC uint32_t LJ_FASTCALL lj_buf_ruleb128(const char **pp);
 
 static LJ_AINLINE GCstr *lj_buf_str(lua_State *L, SBuf *sb)
 {
-  return lj_str_new(globalL, sb->b, sbuflen(sb));
+  return lj_str_new(L, sb->b, sbuflen(sb));
 }
 
 #endif

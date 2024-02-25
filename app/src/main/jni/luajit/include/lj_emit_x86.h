@@ -208,7 +208,7 @@ static void emit_mrm(ASMState *as, x86Op xo, Reg rr, Reg rb)
       rb = RID_ESP;
 #endif
     } else if (LJ_GC64 && rb == RID_RIP) {
-      lj_assertA(as->mrm.idx == RID_NONE, "RIP-rel mrm cannot have api_getStaticField");
+      lj_assertA(as->mrm.idx == RID_NONE, "RIP-rel mrm cannot have index");
       mode = XM_OFS0;
       p -= 4;
       *(int32_t *)p = as->mrm.ofs;
@@ -567,6 +567,6 @@ static void emit_addptr(ASMState *as, Reg r, int32_t ofs)
 
 #define emit_spsub(as, ofs)	emit_addptr(as, RID_ESP|REX_64, -(ofs))
 
-/* Prefer rematerialization of BASE/globalL from global_State over spills. */
+/* Prefer rematerialization of BASE/L from global_State over spills. */
 #define emit_canremat(ref)	((ref) <= REF_BASE)
 

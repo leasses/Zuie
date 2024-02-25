@@ -117,7 +117,7 @@ static void emit_vlso(ASMState *as, ARMIns ai, Reg rd, Reg rn, int32_t ofs)
 
 /* -- Emit loads/stores --------------------------------------------------- */
 
-/* Prefer spills of BASE/globalL. */
+/* Prefer spills of BASE/L. */
 #define emit_canremat(ref)	((ref) < ASMREF_L)
 
 /* Try to find a one step delta relative to another constant. */

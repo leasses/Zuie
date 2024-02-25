@@ -467,7 +467,7 @@ static void asm_bufhdr_write(ASMState *as, Reg sb)
   Reg tmp = ra_scratch(as, rset_exclude(RSET_GPR, sb));
   IRIns irgc;
   irgc.ot = IRT(0, IRT_PGC);  /* GC type. */
-  emit_storeofs(as, &irgc, RID_TMP, sb, offsetof(SBuf, globalL));
+  emit_storeofs(as, &irgc, RID_TMP, sb, offsetof(SBuf, L));
   if ((as->flags & JIT_F_MIPSXXR2)) {
     emit_tsml(as, LJ_64 ? MIPSI_DINS : MIPSI_INS, RID_TMP, tmp,
 	      lj_fls(SBUF_MASK_FLAG), 0);
@@ -476,7 +476,7 @@ static void asm_bufhdr_write(ASMState *as, Reg sb)
     emit_tsi(as, MIPSI_ANDI, tmp, tmp, SBUF_MASK_FLAG);
   }
   emit_getgl(as, RID_TMP, cur_L);
-  emit_loadofs(as, &irgc, tmp, sb, offsetof(SBuf, globalL));
+  emit_loadofs(as, &irgc, tmp, sb, offsetof(SBuf, L));
 }
 #endif
 
@@ -653,11 +653,11 @@ static void asm_conv(ASMState *as, IRIns *ir)
 		     rset_exclude(RSET_GPR, dest));
 	  emit_fg(as, MIPSI_TRUNC_L_D, tmp, left);  /* Delay slot. */
 #if !LJ_TARGET_MIPSR6
-	 emit_branch(as, MIPSI_BC1T, 0, 0, l_end);
-	 emit_fgh(as, MIPSI_C_OLT_D, 0, left, tmp);
+	emit_branch(as, MIPSI_BC1T, 0, 0, l_end);
+	emit_fgh(as, MIPSI_C_OLT_D, 0, left, tmp);
 #else
-	 emit_branch(as, MIPSI_BC1NEZ, 0, (left&31), l_end);
-	 emit_fgh(as, MIPSI_CMP_LT_D, left, left, tmp);
+	emit_branch(as, MIPSI_BC1NEZ, 0, (tmp&31), l_end);
+	emit_fgh(as, MIPSI_CMP_LT_D, tmp, left, tmp);
 #endif
 	  emit_lsptr(as, MIPSI_LDC1, (tmp & 31),
 		     (void *)&as->J->k64[LJ_K64_2P63],
@@ -670,11 +670,11 @@ static void asm_conv(ASMState *as, IRIns *ir)
 		     rset_exclude(RSET_GPR, dest));
 	  emit_fg(as, MIPSI_TRUNC_L_S, tmp, left);  /* Delay slot. */
 #if !LJ_TARGET_MIPSR6
-	 emit_branch(as, MIPSI_BC1T, 0, 0, l_end);
-	 emit_fgh(as, MIPSI_C_OLT_S, 0, left, tmp);
+	emit_branch(as, MIPSI_BC1T, 0, 0, l_end);
+	emit_fgh(as, MIPSI_C_OLT_S, 0, left, tmp);
 #else
-	 emit_branch(as, MIPSI_BC1NEZ, 0, (left&31), l_end);
-	 emit_fgh(as, MIPSI_CMP_LT_S, left, left, tmp);
+	emit_branch(as, MIPSI_BC1NEZ, 0, (tmp&31), l_end);
+	emit_fgh(as, MIPSI_CMP_LT_S, tmp, left, tmp);
 #endif
 	  emit_lsptr(as, MIPSI_LWC1, (tmp & 31),
 		     (void *)&as->J->k32[LJ_K32_2P63],
@@ -690,8 +690,8 @@ static void asm_conv(ASMState *as, IRIns *ir)
 	MIPSIns mi = irt_is64(ir->t) ?
 	  (st == IRT_NUM ? MIPSI_TRUNC_L_D : MIPSI_TRUNC_L_S) :
 	  (st == IRT_NUM ? MIPSI_TRUNC_W_D : MIPSI_TRUNC_W_S);
-	emit_tg(as, irt_is64(ir->t) ? MIPSI_DMFC1 : MIPSI_MFC1, dest, left);
-	emit_fg(as, mi, left, left);
+	emit_tg(as, irt_is64(ir->t) ? MIPSI_DMFC1 : MIPSI_MFC1, dest, tmp);
+	emit_fg(as, mi, tmp, left);
 #endif
       }
     }
@@ -839,7 +839,7 @@ static void asm_tvstore64(ASMState *as, Reg base, int32_t ofs, IRRef ref)
 	     "store of IR type %d", irt_type(ir->t));
   if (irref_isk(ref)) {
     TValue k;
-    lj_ir_kvalue(as->J->globalL, &k, ir);
+    lj_ir_kvalue(as->J->L, &k, ir);
     emit_tsi(as, MIPSI_SD, ra_allock(as, (int64_t)k.u64, allow), base, ofs);
   } else {
     Reg src = ra_alloc1(as, ref, allow);
@@ -948,7 +948,7 @@ static void asm_aref(ASMState *as, IRIns *ir)
 **   do {
 **     if (lj_obj_equal(&n->key, key)) return &n->val;
 **   } while ((n = nextnode(n)));
-**   return niltv(globalL);
+**   return niltv(L);
 */
 static void asm_href(ASMState *as, IRIns *ir, IROp merge)
 {
@@ -1207,22 +1207,29 @@ nolo:
 static void asm_uref(ASMState *as, IRIns *ir)
 {
   Reg dest = ra_dest(as, ir, RSET_GPR);
-  if (irref_isk(ir->op1)) {
+  int guarded = (irt_t(ir->t) & (IRT_GUARD|IRT_TYPE)) == (IRT_GUARD|IRT_PGC);
+  if (irref_isk(ir->op1) && !guarded) {
     GCfunc *fn = ir_kfunc(IR(ir->op1));
     MRef *v = &gcref(fn->l.uvptr[(ir->op2 >> 8)])->uv.v;
     emit_lsptr(as, MIPSI_AL, dest, v, RSET_GPR);
   } else {
-    Reg uv = ra_scratch(as, RSET_GPR);
-    Reg func = ra_alloc1(as, ir->op1, RSET_GPR);
-    if (ir->o == IR_UREFC) {
-      asm_guard(as, MIPSI_BEQ, RID_TMP, RID_ZERO);
-      emit_tsi(as, MIPSI_AADDIU, dest, uv, (int32_t)offsetof(GCupval, tv));
-      emit_tsi(as, MIPSI_LBU, RID_TMP, uv, (int32_t)offsetof(GCupval, closed));
+    if (guarded)
+      asm_guard(as, ir->o == IR_UREFC ? MIPSI_BEQ : MIPSI_BNE, RID_TMP, RID_ZERO);
+    if (ir->o == IR_UREFC)
+      emit_tsi(as, MIPSI_AADDIU, dest, dest, (int32_t)offsetof(GCupval, tv));
+    else
+      emit_tsi(as, MIPSI_AL, dest, dest, (int32_t)offsetof(GCupval, v));
+    if (guarded)
+      emit_tsi(as, MIPSI_LBU, RID_TMP, dest, (int32_t)offsetof(GCupval, closed));
+    if (irref_isk(ir->op1)) {
+      GCfunc *fn = ir_kfunc(IR(ir->op1));
+      GCobj *o = gcref(fn->l.uvptr[(ir->op2 >> 8)]);
+      emit_loada(as, dest, o);
     } else {
-      emit_tsi(as, MIPSI_AL, dest, uv, (int32_t)offsetof(GCupval, v));
+      emit_tsi(as, MIPSI_AL, dest, ra_alloc1(as, ir->op1, RSET_GPR),
+	       (int32_t)offsetof(GCfuncL, uvptr) +
+	       (int32_t)sizeof(MRef) * (int32_t)(ir->op2 >> 8));
     }
-    emit_tsi(as, MIPSI_AL, uv, func, (int32_t)offsetof(GCfuncL, uvptr) +
-	     (int32_t)sizeof(MRef) * (int32_t)(ir->op2 >> 8));
   }
 }
 
@@ -1668,7 +1675,7 @@ static void asm_cnew(ASMState *as, IRIns *ir)
     lj_assertA(sz == 4 || sz == 8, "bad CNEWI size %d", sz);
   } else if (ir->op2 != REF_NIL) {  /* Create VLA/VLS/aligned cdata. */
     ci = &lj_ir_callinfo[IRCALL_lj_cdata_newv];
-    args[0] = ASMREF_L;     /* lua_State *globalL */
+    args[0] = ASMREF_L;     /* lua_State *L */
     args[1] = ir->op1;      /* CTypeID id   */
     args[2] = ir->op2;      /* CTSize sz    */
     args[3] = ASMREF_TMP1;  /* CTSize align */
@@ -1682,7 +1689,7 @@ static void asm_cnew(ASMState *as, IRIns *ir)
   emit_tsi(as, MIPSI_SH, RID_TMP, RID_RET, offsetof(GCcdata, ctypeid));
   emit_ti(as, MIPSI_LI, RID_RET+1, ~LJ_TCDATA);
   emit_ti(as, MIPSI_LI, RID_TMP, id); /* Lower 16 bit used. Sign-ext ok. */
-  args[0] = ASMREF_L;     /* lua_State *globalL */
+  args[0] = ASMREF_L;     /* lua_State *L */
   args[1] = ASMREF_TMP1;  /* MSize size   */
   asm_gencall(as, ci, args);
   ra_allockreg(as, (int32_t)(sz+sizeof(GCcdata)),

@@ -31,7 +31,7 @@ TREDEF(NYIRETL,	"NYI: return to lower frame")
 /* Recording indexed load/store. */
 TREDEF(STORENN,	"store with nil or NaN key")
 TREDEF(NOMM,	"missing metamethod")
-TREDEF(IDXLOOP,	"looping api_getStaticField lookup")
+TREDEF(IDXLOOP,	"looping index lookup")
 TREDEF(NYITMIX,	"NYI: mixed sparse/dense table")
 
 /* Recording C data operations. */

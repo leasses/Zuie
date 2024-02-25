@@ -168,7 +168,7 @@
   _(RET0,	rbase,	___,	lit,	___) \
   _(RET1,	rbase,	___,	lit,	___) \
   \
-  /* Loops and branches. I/J = interp/JIT, I/C/globalL = api_init/call/loop. */ \
+  /* Loops and branches. I/J = interp/JIT, I/C/L = init/call/loop. */ \
   _(FORI,	base,	___,	jump,	___) \
   _(JFORI,	base,	___,	jump,	___) \
   \

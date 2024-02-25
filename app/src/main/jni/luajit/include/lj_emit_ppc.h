@@ -53,7 +53,7 @@ static void emit_rotlwi(ASMState *as, Reg ra, Reg rs, int32_t n)
 
 /* -- Emit loads/stores --------------------------------------------------- */
 
-/* Prefer rematerialization of BASE/globalL from global_State over spills. */
+/* Prefer rematerialization of BASE/L from global_State over spills. */
 #define emit_canremat(ref)	((ref) <= REF_BASE)
 
 /* Try to find a one step delta relative to another constant. */

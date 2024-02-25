@@ -32,8 +32,8 @@ typedef enum {
 } VMEvent;
 
 #ifdef LUAJIT_DISABLE_VMEVENT
-#define lj_vmevent_send(globalL, ev, args)		UNUSED(globalL)
-#define lj_vmevent_send_(globalL, ev, args, post)	UNUSED(globalL)
+#define lj_vmevent_send(L, ev, args)		UNUSED(L)
+#define lj_vmevent_send_(L, ev, args, post)	UNUSED(L)
 #else
 #define lj_vmevent_send(L, ev, args) \
   if (G(L)->vmevmask & VMEVENT_MASK(LJ_VMEVENT_##ev)) { \

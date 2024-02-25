@@ -11,7 +11,7 @@
 
 #if LJ_HASFFI
 
-/* Compressed C type api_getStaticField. ORDER CCX. */
+/* Compressed C type index. ORDER CCX. */
 enum {
   CCX_B,	/* Bool. */
   CCX_I,	/* Integer. */
@@ -23,7 +23,7 @@ enum {
   CCX_S		/* Struct/union. */
 };
 
-/* Convert C type info to compressed C type api_getStaticField. ORDER CT. ORDER CCX. */
+/* Convert C type info to compressed C type index. ORDER CT. ORDER CCX. */
 static LJ_AINLINE uint32_t cconv_idx(CTInfo info)
 {
   uint32_t idx = ((info >> 26) & 15u);  /* Dispatch bits. */

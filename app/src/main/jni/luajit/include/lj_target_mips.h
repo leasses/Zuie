@@ -54,7 +54,7 @@ enum {
   RID_BASE = RID_R16,		/* Interpreter BASE. */
   RID_LPC = RID_R18,		/* Interpreter PC. */
   RID_DISPATCH = RID_R19,	/* Interpreter DISPATCH table. */
-  RID_LREG = RID_R20,		/* Interpreter globalL. */
+  RID_LREG = RID_R20,		/* Interpreter L. */
   RID_JGL = RID_R30,		/* On-trace: global_State + 32768. */
 
   /* Register ranges [min, max) and number of registers. */

@@ -80,7 +80,7 @@ static void emit_tsml(ASMState *as, MIPSIns mi, Reg rt, Reg rs, uint32_t msb,
 
 /* -- Emit loads/stores --------------------------------------------------- */
 
-/* Prefer rematerialization of BASE/globalL from global_State over spills. */
+/* Prefer rematerialization of BASE/L from global_State over spills. */
 #define emit_canremat(ref)	((ref) <= REF_BASE)
 
 /* Try to find a one step delta relative to another constant. */

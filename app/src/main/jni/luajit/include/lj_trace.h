@@ -47,7 +47,7 @@ LJ_FUNC uintptr_t LJ_FASTCALL lj_trace_unwind(jit_State *J, uintptr_t addr, Exit
 
 #else
 
-#define lj_trace_flushall(globalL)	(UNUSED(globalL), 0)
+#define lj_trace_flushall(L)	(UNUSED(L), 0)
 #define lj_trace_initstate(g)	UNUSED(g)
 #define lj_trace_freestate(g)	UNUSED(g)
 #define lj_trace_abort(g)	UNUSED(g)

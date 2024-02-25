@@ -54,7 +54,7 @@
 #define LUA_JPATH	";" LUA_JROOT "/share" LUA_LJDIR "?.lua"
 #define LUA_LLDIR	LUA_LROOT "/share" LUA_LUADIR
 #define LUA_LCDIR	LUA_LROOT "/" LUA_LMULTILIB LUA_LUADIR
-#define LUA_LLPATH	";" LUA_LLDIR "?.lua;" LUA_LLDIR "?/api_init.lua"
+#define LUA_LLPATH	";" LUA_LLDIR "?.lua;" LUA_LLDIR "?/init.lua"
 #define LUA_LCPATH1	";" LUA_LCDIR "?.so"
 #define LUA_LCPATH2	";" LUA_LCDIR "loadall.so"
 
@@ -144,7 +144,7 @@
 #define lua_assert(x)		assert(x)
 #endif
 #ifdef LUA_USE_APICHECK
-#define luai_apicheck(globalL, o)	{ (void)globalL; assert(o); }
+#define luai_apicheck(L, o)	{ (void)L; assert(o); }
 #else
 #define luai_apicheck(L, o)	{ (void)L; }
 #endif

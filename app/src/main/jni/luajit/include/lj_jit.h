@@ -204,7 +204,7 @@ typedef uint32_t SnapEntry;
 #define SNAP_CONT		0x020000	/* Continuation slot. */
 #define SNAP_NORESTORE		0x040000	/* No need to restore slot. */
 #define SNAP_SOFTFPNUM		0x080000	/* Soft-float number. */
-#define SNAP_KEYINDEX		0x100000	/* Traversal key api_getStaticField. */
+#define SNAP_KEYINDEX		0x100000	/* Traversal key index. */
 LJ_STATIC_ASSERT(SNAP_FRAME == TREF_FRAME);
 LJ_STATIC_ASSERT(SNAP_CONT == TREF_CONT);
 LJ_STATIC_ASSERT(SNAP_KEYINDEX == TREF_KEYINDEX);
@@ -488,14 +488,14 @@ typedef struct jit_State {
   MCode *exitstubgroup[LJ_MAX_EXITSTUBGR];  /* Exit stub group addresses. */
 
   HotPenalty penalty[PENALTY_SLOTS];  /* Penalty slots. */
-  uint32_t penaltyslot;	/* Round-robin api_getStaticField into penalty slots. */
+  uint32_t penaltyslot;	/* Round-robin index into penalty slots. */
 
 #ifdef LUAJIT_ENABLE_TABLE_BUMP
   RBCHashEntry rbchash[RBCHASH_SLOTS];  /* Reverse bytecode map. */
 #endif
 
   BPropEntry bpropcache[BPROP_SLOTS];  /* Backpropagation cache slots. */
-  uint32_t bpropslot;	/* Round-robin api_getStaticField into bpropcache slots. */
+  uint32_t bpropslot;	/* Round-robin index into bpropcache slots. */
 
   ScEvEntry scev;	/* Scalar evolution analysis cache slots. */
 

@@ -71,7 +71,7 @@ typedef struct GCRef {
 
 #define setgcref(r, gc)	((r).gcptr64 = (uint64_t)&(gc)->gch)
 #define setgcreft(r, gc, it) \
-  (r).gcptr64 = (uint64_t)&(api_gc)->gch | (((uint64_t)(it)) << 47)
+  (r).gcptr64 = (uint64_t)&(gc)->gch | (((uint64_t)(it)) << 47)
 #define setgcrefp(r, p)	((r).gcptr64 = (uint64_t)(p))
 #define setgcrefnull(r)	((r).gcptr64 = 0)
 #define setgcrefr(r, v)	((r).gcptr64 = (v).gcptr64)
@@ -199,7 +199,7 @@ typedef LJ_ALIGN(8) union TValue {
 #else
   struct {
     LJ_ENDIAN_LOHI(
-      GCRef func;	/* Function for next frame (or dummy globalL). */
+      GCRef func;	/* Function for next frame (or dummy L). */
     , FrameLink tp;	/* Link to previous frame. */
     )
   } fr;
@@ -284,7 +284,7 @@ typedef const TValue cTValue;
 #define LJ_TISGCV		(LJ_TSTR+1)
 #define LJ_TISTABUD		LJ_TTAB
 
-/* Type marker for slot holding a traversal api_getStaticField. Must be lightuserdata. */
+/* Type marker for slot holding a traversal index. Must be lightuserdata. */
 #define LJ_KEYINDEX		0xfffe7fffu
 
 #if LJ_GC64
@@ -653,7 +653,7 @@ typedef struct global_State {
   BCIns bc_cfunc_int;	/* Bytecode for internal C function calls. */
   BCIns bc_cfunc_ext;	/* Bytecode for external C function calls. */
   GCRef cur_L;		/* Currently executing lua_State. */
-  MRef jit_base;	/* Current JIT code globalL->base or NULL. */
+  MRef jit_base;	/* Current JIT code L->base or NULL. */
   MRef ctype_state;	/* Pointer to C type state. */
   PRNGState prng;	/* Global PRNG state. */
   GCRef gcroot[GCROOT_MAX];  /* GC roots. */
@@ -704,9 +704,9 @@ struct lua_State {
 
 /* Macros to access the currently executing (Lua) function. */
 #if LJ_GC64
-#define curr_func(globalL)		(&gcval(globalL->base-2)->fn)
+#define curr_func(L)		(&gcval(L->base-2)->fn)
 #elif LJ_FR2
-#define curr_func(globalL)		(&gcref((globalL->base-2)->gcr)->fn)
+#define curr_func(L)		(&gcref((L->base-2)->gcr)->fn)
 #else
 #define curr_func(L)		(&gcref((L->base-1)->fr.func)->fn)
 #endif
@@ -906,7 +906,7 @@ static LJ_AINLINE void checklivetv(lua_State *L, TValue *o, const char *msg)
 	       "mismatch of TValue type %d vs GC type %d",
 	       ~itype(o), gcval(o)->gch.gct);
     /* Copy of isdead check from lj_gc.h to avoid circular include. */
-    lj_assertL(!(gcval(o)->gch.marked & (G(globalL)->api_gc.currentwhite ^ 3) & 3), msg);
+    lj_assertL(!(gcval(o)->gch.marked & (G(L)->gc.currentwhite ^ 3) & 3), msg);
   }
 #endif
 }

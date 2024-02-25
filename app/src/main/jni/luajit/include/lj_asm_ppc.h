@@ -399,10 +399,10 @@ static void asm_bufhdr_write(ASMState *as, Reg sb)
   Reg tmp = ra_scratch(as, rset_exclude(RSET_GPR, sb));
   IRIns irgc;
   irgc.ot = IRT(0, IRT_PGC);  /* GC type. */
-  emit_storeofs(as, &irgc, RID_TMP, sb, offsetof(SBuf, globalL));
+  emit_storeofs(as, &irgc, RID_TMP, sb, offsetof(SBuf, L));
   emit_rot(as, PPCI_RLWIMI, RID_TMP, tmp, 0, 31-lj_fls(SBUF_MASK_FLAG), 31);
   emit_getgl(as, RID_TMP, cur_L);
-  emit_loadofs(as, &irgc, tmp, sb, offsetof(SBuf, globalL));
+  emit_loadofs(as, &irgc, tmp, sb, offsetof(SBuf, L));
 }
 #endif
 
@@ -662,7 +662,7 @@ static void asm_aref(ASMState *as, IRIns *ir)
 **   do {
 **     if (lj_obj_equal(&n->key, key)) return &n->val;
 **   } while ((n = nextnode(n)));
-**   return niltv(globalL);
+**   return niltv(L);
 */
 static void asm_href(ASMState *as, IRIns *ir, IROp merge)
 {
@@ -840,23 +840,30 @@ static void asm_hrefk(ASMState *as, IRIns *ir)
 static void asm_uref(ASMState *as, IRIns *ir)
 {
   Reg dest = ra_dest(as, ir, RSET_GPR);
-  if (irref_isk(ir->op1)) {
+  int guarded = (irt_t(ir->t) & (IRT_GUARD|IRT_TYPE)) == (IRT_GUARD|IRT_PGC);
+  if (irref_isk(ir->op1) && !guarded) {
     GCfunc *fn = ir_kfunc(IR(ir->op1));
     MRef *v = &gcref(fn->l.uvptr[(ir->op2 >> 8)])->uv.v;
     emit_lsptr(as, PPCI_LWZ, dest, v, RSET_GPR);
   } else {
-    Reg uv = ra_scratch(as, RSET_GPR);
-    Reg func = ra_alloc1(as, ir->op1, RSET_GPR);
-    if (ir->o == IR_UREFC) {
-      asm_guardcc(as, CC_NE);
+    if (guarded) {
+      asm_guardcc(as, ir->o == IR_UREFC ? CC_NE : CC_EQ);
       emit_ai(as, PPCI_CMPWI, RID_TMP, 1);
-      emit_tai(as, PPCI_ADDI, dest, uv, (int32_t)offsetof(GCupval, tv));
-      emit_tai(as, PPCI_LBZ, RID_TMP, uv, (int32_t)offsetof(GCupval, closed));
-    } else {
-      emit_tai(as, PPCI_LWZ, dest, uv, (int32_t)offsetof(GCupval, v));
     }
-    emit_tai(as, PPCI_LWZ, uv, func,
-	     (int32_t)offsetof(GCfuncL, uvptr) + 4*(int32_t)(ir->op2 >> 8));
+    if (ir->o == IR_UREFC)
+      emit_tai(as, PPCI_ADDI, dest, dest, (int32_t)offsetof(GCupval, tv));
+    else
+      emit_tai(as, PPCI_LWZ, dest, dest, (int32_t)offsetof(GCupval, v));
+    if (guarded)
+      emit_tai(as, PPCI_LBZ, RID_TMP, dest, (int32_t)offsetof(GCupval, closed));
+    if (irref_isk(ir->op1)) {
+      GCfunc *fn = ir_kfunc(IR(ir->op1));
+      int32_t k = (int32_t)gcrefu(fn->l.uvptr[(ir->op2 >> 8)]);
+      emit_loadi(as, dest, k);
+    } else {
+      emit_tai(as, PPCI_LWZ, dest, ra_alloc1(as, ir->op1, RSET_GPR),
+	       (int32_t)offsetof(GCfuncL, uvptr) + 4*(int32_t)(ir->op2 >> 8));
+    }
   }
 }
 
@@ -1223,7 +1230,7 @@ static void asm_cnew(ASMState *as, IRIns *ir)
     }
   } else if (ir->op2 != REF_NIL) {  /* Create VLA/VLS/aligned cdata. */
     ci = &lj_ir_callinfo[IRCALL_lj_cdata_newv];
-    args[0] = ASMREF_L;     /* lua_State *globalL */
+    args[0] = ASMREF_L;     /* lua_State *L */
     args[1] = ir->op1;      /* CTypeID id   */
     args[2] = ir->op2;      /* CTSize sz    */
     args[3] = ASMREF_TMP1;  /* CTSize align */
@@ -1237,7 +1244,7 @@ static void asm_cnew(ASMState *as, IRIns *ir)
   emit_tai(as, PPCI_STH, RID_TMP, RID_RET, offsetof(GCcdata, ctypeid));
   emit_ti(as, PPCI_LI, RID_RET+1, ~LJ_TCDATA);
   emit_ti(as, PPCI_LI, RID_TMP, id);  /* Lower 16 bit used. Sign-ext ok. */
-  args[0] = ASMREF_L;     /* lua_State *globalL */
+  args[0] = ASMREF_L;     /* lua_State *L */
   args[1] = ASMREF_TMP1;  /* MSize size   */
   asm_gencall(as, ci, args);
   ra_allockreg(as, (int32_t)(sz+sizeof(GCcdata)),

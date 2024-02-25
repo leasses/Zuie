@@ -141,7 +141,7 @@ LJ_FUNCA ASMFunction LJ_FASTCALL lj_dispatch_call(lua_State *L, const BCIns*pc);
 LJ_FUNCA void LJ_FASTCALL lj_dispatch_stitch(jit_State *J, const BCIns *pc);
 #endif
 #if LJ_HASPROFILE
-LJ_FUNCA void LJ_FASTCALL lj_dispatch_profile(lua_State *globalL, const BCIns *pc);
+LJ_FUNCA void LJ_FASTCALL lj_dispatch_profile(lua_State *L, const BCIns *pc);
 #endif
 
 #if LJ_HASFFI && !defined(_BUILDVM_H)

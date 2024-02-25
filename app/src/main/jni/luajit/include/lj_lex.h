@@ -74,6 +74,7 @@ typedef struct LexState {
   MSize sizebcstack;	/* Size of bytecode stack. */
   uint32_t level;	/* Syntactical nesting level. */
   int endmark;		/* Trust bytecode end marker, even if not at EOF. */
+  int fr2;		/* Generate bytecode for LJ_FR2 mode. */
 } LexState;
 
 LJ_FUNC int lj_lex_setup(lua_State *L, LexState *ls);
@@ -85,7 +86,7 @@ LJ_FUNC_NORET void lj_lex_error(LexState *ls, LexToken tok, ErrMsg em, ...);
 LJ_FUNC void lj_lex_init(lua_State *L);
 
 #ifdef LUA_USE_ASSERT
-#define lj_assertLS(c, ...)	(lj_assertG_(G(ls->globalL), (c), __VA_ARGS__))
+#define lj_assertLS(c, ...)	(lj_assertG_(G(ls->L), (c), __VA_ARGS__))
 #else
 #define lj_assertLS(c, ...)	((void)ls)
 #endif

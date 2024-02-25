@@ -36,7 +36,7 @@ typedef struct CCallInfo {
 
 /* C call info flags. */
 #define CCI_T			(IRT_GUARD << CCI_OTSHIFT)  /* May throw. */
-#define CCI_L			0x0100	/* Implicit globalL arg. */
+#define CCI_L			0x0100	/* Implicit L arg. */
 #define CCI_CASTU64		0x0200	/* Cast u64 result to number. */
 #define CCI_NOFPRCLOBBER	0x0400	/* Does not clobber any FPRs. */
 #define CCI_VARARG		0x0800	/* Vararg function. */
@@ -63,7 +63,7 @@ typedef struct CCallInfo {
 /* Helpers for conditional function definitions. */
 #define IRCALLCOND_ANY(x)		x
 
-#if LJ_TARGET_X86ORX64
+#if LJ_TARGET_X86ORX64 || LJ_TARGET_ARM64
 #define IRCALLCOND_FPMATH(x)		NULL
 #else
 #define IRCALLCOND_FPMATH(x)		x

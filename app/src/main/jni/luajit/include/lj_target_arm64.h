@@ -39,7 +39,7 @@ enum {
   RID_BASE = RID_X19,		/* Interpreter BASE. */
   RID_LPC = RID_X21,		/* Interpreter PC. */
   RID_GL = RID_X22,		/* Interpreter GL. */
-  RID_LREG = RID_X23,		/* Interpreter globalL. */
+  RID_LREG = RID_X23,		/* Interpreter L. */
 
   /* Register ranges [min, max) and number of registers. */
   RID_MIN_GPR = RID_X0,
@@ -234,6 +234,8 @@ typedef enum A64Ins {
   A64I_MOVZx = 0xd2800000,
   A64I_MOVNw = 0x12800000,
   A64I_MOVNx = 0x92800000,
+  A64I_ADR = 0x10000000,
+  A64I_ADRP = 0x90000000,
 
   A64I_LDRB = 0x39400000,
   A64I_LDRH = 0x79400000,

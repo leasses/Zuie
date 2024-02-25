@@ -34,7 +34,7 @@ LJ_FUNC TValue *lj_lib_checkany(lua_State *L, int narg);
 LJ_FUNC GCstr *lj_lib_checkstr(lua_State *L, int narg);
 LJ_FUNC GCstr *lj_lib_optstr(lua_State *L, int narg);
 #if LJ_DUALNUM
-LJ_FUNC void lj_lib_checknumber(lua_State *globalL, int narg);
+LJ_FUNC void lj_lib_checknumber(lua_State *L, int narg);
 #else
 #define lj_lib_checknumber(L, narg)	lj_lib_checknum((L), (narg))
 #endif
@@ -42,6 +42,7 @@ LJ_FUNC lua_Number lj_lib_checknum(lua_State *L, int narg);
 LJ_FUNC int32_t lj_lib_checkint(lua_State *L, int narg);
 LJ_FUNC int32_t lj_lib_optint(lua_State *L, int narg, int32_t def);
 LJ_FUNC GCfunc *lj_lib_checkfunc(lua_State *L, int narg);
+LJ_FUNC GCproto *lj_lib_checkLproto(lua_State *L, int narg, int nolua);
 LJ_FUNC GCtab *lj_lib_checktab(lua_State *L, int narg);
 LJ_FUNC GCtab *lj_lib_checktabornil(lua_State *L, int narg);
 LJ_FUNC int lj_lib_checkopt(lua_State *L, int narg, int def, const char *lst);
@@ -54,21 +55,21 @@ LJ_FUNC int32_t lj_lib_checkintrange(lua_State *L, int narg,
 
 /* Avoid including lj_frame.h. */
 #if LJ_GC64
-#define lj_lib_upvalue(globalL, n) \
-  (&gcval(globalL->base-2)->fn.c.upvalue[(n)-1])
+#define lj_lib_upvalue(L, n) \
+  (&gcval(L->base-2)->fn.c.upvalue[(n)-1])
 #elif LJ_FR2
-#define lj_lib_upvalue(globalL, n) \
-  (&gcref((globalL->base-2)->gcr)->fn.c.upvalue[(n)-1])
+#define lj_lib_upvalue(L, n) \
+  (&gcref((L->base-2)->gcr)->fn.c.upvalue[(n)-1])
 #else
 #define lj_lib_upvalue(L, n) \
   (&gcref((L->base-1)->fr.func)->fn.c.upvalue[(n)-1])
 #endif
 
 #if LJ_TARGET_WINDOWS
-#define lj_lib_checkfpu(globalL) \
-  do { setnumV(globalL->top++, (lua_Number)1437217655); \
-    if (lua_tointeger(globalL, -1) != 1437217655) lj_err_caller(globalL, LJ_ERR_BADFPU); \
-    globalL->top--; } while (0)
+#define lj_lib_checkfpu(L) \
+  do { setnumV(L->top++, (lua_Number)1437217655); \
+    if (lua_tointeger(L, -1) != 1437217655) lj_err_caller(L, LJ_ERR_BADFPU); \
+    L->top--; } while (0)
 #else
 #define lj_lib_checkfpu(L)	UNUSED(L)
 #endif
@@ -97,7 +98,7 @@ LJ_FUNC void lj_lib_prereg(lua_State *L, const char *name, lua_CFunction f,
 LJ_FUNC int lj_lib_postreg(lua_State *L, lua_CFunction cf, int id,
 			   const char *name);
 
-/* Library api_init data tags. */
+/* Library init data tags. */
 #define LIBINIT_LENMASK	0x3f
 #define LIBINIT_TAGMASK	0xc0
 #define LIBINIT_CF	0x00

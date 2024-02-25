@@ -51,7 +51,7 @@ LJ_FUNC void lj_gc_finalize_udata(lua_State *L);
 #if LJ_HASFFI
 LJ_FUNC void lj_gc_finalize_cdata(lua_State *L);
 #else
-#define lj_gc_finalize_cdata(globalL)		UNUSED(globalL)
+#define lj_gc_finalize_cdata(L)		UNUSED(L)
 #endif
 LJ_FUNC void lj_gc_freeall(global_State *g);
 LJ_FUNCA int LJ_FASTCALL lj_gc_step(lua_State *L);
@@ -63,10 +63,10 @@ LJ_FUNC void lj_gc_fullgc(lua_State *L);
 
 /* GC check: drive collector forward if the GC threshold has been reached. */
 #define lj_gc_check(L) \
-  { if (LJ_UNLIKELY(G(L)->api_gc.total >= G(L)->api_gc.threshold)) \
+  { if (LJ_UNLIKELY(G(L)->gc.total >= G(L)->gc.threshold)) \
       lj_gc_step(L); }
 #define lj_gc_check_fixtop(L) \
-  { if (LJ_UNLIKELY(G(L)->api_gc.total >= G(L)->api_gc.threshold)) \
+  { if (LJ_UNLIKELY(G(L)->gc.total >= G(L)->gc.threshold)) \
       lj_gc_step_fixtop(L); }
 
 /* Write barriers. */
