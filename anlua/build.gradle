@@ -1,0 +1,33 @@
+plugins {
+    id 'com.android.library'
+}
+
+android {
+    namespace 'leasses.anlua'
+    compileSdk 34
+
+    defaultConfig {
+        minSdk 14
+    }
+
+    ndkVersion '27.0.11718014'
+
+    externalNativeBuild {
+        ndkBuild {
+            path 'src/main/jni/Android.mk'
+        }
+    }
+
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_17
+        targetCompatibility JavaVersion.VERSION_17
+    }
+}
+
+dependencies {
+    implementation project(':dexcake')
+    implementation project(':logs')
+    implementation project(':util')
+
+    implementation 'androidx.annotation:annotation-jvm:1.7.1'
+}
